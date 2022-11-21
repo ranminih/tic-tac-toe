@@ -18,6 +18,8 @@ import static com.javaproject.TicTacToe.models.GameStatus.*;
 @AllArgsConstructor
 public class GameService {
 
+    private static final String BLANK = null;
+
     public Game createGame(Player player) {
         Game game = new Game();
         game.setBoard(new int[3][3]);
@@ -26,6 +28,40 @@ public class GameService {
         game.setStatus(START);
         GameStorage.getInstance().setGame(game); // create game storage
         return game;
+    }
+
+    public static int miniMax(Board board, int depth, boolean isMax) {
+        int boardVal = evaluateBoard(board.getWidth);
+        // Maximising player, find the maximum attainable value.
+        if (isMax) {
+            int highestVal = Integer.MIN_VALUE;
+            for (int row = 0; row < board.getWidth(); row++) {
+                for (int col = 0; col < board.getWidth(); col++) {
+                    if (!board.isTileMarked(row, col)) {
+                        board.setMarkAt(row, col, TicToe.X);
+                        highestVal = Math.max(highestVal, miniMax(board,
+                                depth - 1, false));
+                        board.setMarkAt(row, col, BLANK);
+                    }
+                }
+            }
+            return highestVal;
+            // Minimising player, find the minimum attainable value;
+        } else {
+            int lowestVal = Integer.MAX_VALUE;
+            for (int row = 0; row < board.getWidth(); row++) {
+                for (int col = 0; col < board.getWidth(); col++) {
+                    if (!board.isTileMarked(row, col)) {
+                        board.setMarkAt(row, col, TicToe.O);
+                        lowestVal = Math.min(lowestVal, miniMax(board,
+                                depth - 1, true));
+                        board.setMarkAt(row, col, BLANK);
+                    }
+                }
+            }
+            return lowestVal;
+        }
+
     }
 
     // method to connect the game using gameId
