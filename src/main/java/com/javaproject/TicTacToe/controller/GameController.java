@@ -1,8 +1,10 @@
 
 package com.javaproject.TicTacToe.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +29,12 @@ import lombok.extern.slf4j.Slf4j;
 public class GameController {
     private final GameService gameService;
     private final SimpMessagingTemplate simpMessagingTemplate;
+
+    @GetMapping("/players")
+    public ResponseEntity<Game> enter(@RequestBody Player player) {
+        log.info("enter player ID: {}", player);
+        return ResponseEntity.ok(gameService.createGame(player));
+    }
 
     @PostMapping("/start")
     public ResponseEntity<Game> start(@RequestBody Player player) {

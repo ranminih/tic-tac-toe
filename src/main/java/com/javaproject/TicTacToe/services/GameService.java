@@ -18,8 +18,6 @@ import static com.javaproject.TicTacToe.models.GameStatus.*;
 @AllArgsConstructor
 public class GameService {
 
-    private static final String BLANK = null;
-
     public Game createGame(Player player) {
         Game game = new Game();
         game.setBoard(new int[3][3]);
@@ -30,18 +28,24 @@ public class GameService {
         return game;
     }
 
-    public static int miniMax(Board board, int depth, boolean isMax) {
-        int boardVal = evaluateBoard(board.getWidth);
+    // Algorithm to enable AI win
+    /**
+     * @param board
+     * @param depth
+     * @param isMax
+     * @return
+     */
+    public static int markForAi(int[][] board, int depth, boolean isMax) {
         // Maximising player, find the maximum attainable value.
         if (isMax) {
             int highestVal = Integer.MIN_VALUE;
-            for (int row = 0; row < board.getWidth(); row++) {
-                for (int col = 0; col < board.getWidth(); col++) {
-                    if (!board.isTileMarked(row, col)) {
-                        board.setMarkAt(row, col, TicToe.X);
-                        highestVal = Math.max(highestVal, miniMax(board,
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++) {
+                    if (isTileMarked(board, row, col)) {
+                        board[row][col] = 1;
+                        highestVal = Math.max(highestVal, markForAi(board,
                                 depth - 1, false));
-                        board.setMarkAt(row, col, BLANK);
+                        board[row][col] = 1;
                     }
                 }
             }
@@ -49,13 +53,11 @@ public class GameService {
             // Minimising player, find the minimum attainable value;
         } else {
             int lowestVal = Integer.MAX_VALUE;
-            for (int row = 0; row < board.getWidth(); row++) {
-                for (int col = 0; col < board.getWidth(); col++) {
-                    if (!board.isTileMarked(row, col)) {
-                        board.setMarkAt(row, col, TicToe.O);
-                        lowestVal = Math.min(lowestVal, miniMax(board,
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++) {
+                    if (!isTileMarked(board, row, col)) {
+                        lowestVal = Math.min(lowestVal, markForAi(board,
                                 depth - 1, true));
-                        board.setMarkAt(row, col, BLANK);
                     }
                 }
             }
@@ -107,7 +109,8 @@ public class GameService {
         }
         // get board and get X and Y coordinate
         int[][] board = game.getBoard();
-        board[gamePlay.getCoordinateX()][gamePlay.getCoordinateY()] = gamePlay.getType().getValue();
+        // marking for player with 2
+        board[gamePlay.getCoordinateX()][gamePlay.getCoordinateY()] = 2;
 
         // determining the winner
         Boolean xWinner = checkWinner(game.getBoard(), TicToe.X);
@@ -132,7 +135,7 @@ public class GameService {
                 counterIndex++;
             }
         }
-
+        // win combinations within game logic
         int[][] winCombinations = { { 0, 1, 2 }, { 3, 4, 5 }, { 6, 7, 8 }, { 0, 3, 6 }, { 1, 4, 7 }, { 2, 5, 8 },
                 { 0, 4, 8 }, { 2, 4, 6 } };
         for (int i = 0; i < winCombinations.length; i++) {
@@ -146,7 +149,36 @@ public class GameService {
                 }
             }
         }
+        if (ticToe.getValue() == 2 && anyMovesAvailable(board)) {
+            markForAi(board, getDepth(board), true);
+        }
         return false;
     }
 
+    public static boolean isTileMarked(int[][] board, int x, int y) throws IndexOutOfBoundsException {
+        return board[x][y] != 0;
+    }
+
+    public boolean anyMovesAvailable(int[][] board) {
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                if (!isTileMarked(board, i, j)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public int getDepth(int[][] board) {
+        int count = 0;
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                if (isTileMarked(board, i, j)) {
+                    count++;
+                }
+            }
+        }
+        return count % 3;
+    }
 }
